@@ -80,138 +80,141 @@ Hp = makefilter(Fs,0.25,0.01,6,20,0);
 Lp = makefilter(Fs,50,51,6,20,0);  
 
 %% setting the thresholds for artifact detection and removal
-% Identify bad channel and epochs by using standard deviation
+% You can adjust these parameters as needed.
+% Identify bad channel and epochs by using standard deviation 
 var_threshold = 2.5;  % normalized variance threshold to reject trials.
 chan_threshold = 2.5;  % to mark bad channels (smaller values are stricter)
 % Identify eye movement component using correlation coefficients
 corr_threshold = 0.4;  % threshold for identifying whether an ICA component contains eye movement. (smaller values are stricter)
 
 
-%% Loop through the raw data of each patient: filter, clean and run ICA
-for f=1:61 % loop through 61 patients
-    tic
-    % Navigate the data directory such as
-    % cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_reorganized
-    load([num2str(subj_files(f)) '.mat']);
-    subject_ID=subj_files(f);
-    display(['start processing subject file: ' num2str(subj_files(f)) '.mat']);
+%% Select the raw data of one patient: filter, clean and run ICA
+subj_files=[0:1:60];
+f=3; % select one patient (f=1:61)
 
-    % average re-reference
-    rData=Data-ones(size(Data,1),1)*mean(Data,1);
-    % remove 49 peripheral channels and cz reference
-    rData(ch_peripheral_cz,:)=[];
-    rData=rData';
-    % detrend the EEG data 
-    detrend_data=detrend(rData,1);
-    % add paddings to allow some buffer zone of edge effect
-    padding=zeros(round(size(detrend_data,1)/10), size(detrend_data,2));
-    detrend_pad=cat(1,padding,detrend_data,padding);
-    % high pass filter
-    pad_hp=filtfilthd(Hp,detrend_pad);
-    % Low pass filter (take a few seconds)
-    pad_lp=filtfilthd(Lp,pad_hp);
-    % remove the paddings that contain the edge artifacts
-    filtered_data=pad_lp((size(padding,1)+1):(size(padding,1)+size(detrend_data,1)),:);
+tic
+% Navigate the data directory such as
+% cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_reorganized
+load([num2str(subj_files(f)) '.mat']);
+subject_ID=subj_files(f);
+display(['start processing subject file: ' num2str(subj_files(f)) '.mat']);
 
-    % remove some variables to clean up some space on the memory 
-    clearvars Data rData detrend_data detrend_pad pad_hp pad_lp padding
-    % keep the output filtered_data
+% average re-reference
+rData=Data-ones(size(Data,1),1)*mean(Data,1);
+% remove 49 peripheral channels and cz reference
+rData(ch_peripheral_cz,:)=[];
+rData=rData';
+% detrend the EEG data 
+detrend_data=detrend(rData,1);
+% add paddings to allow some buffer zone of edge effect
+padding=zeros(round(size(detrend_data,1)/10), size(detrend_data,2));
+detrend_pad=cat(1,padding,detrend_data,padding);
+% high pass filter
+pad_hp=filtfilthd(Hp,detrend_pad);
+% Low pass filter (take a few seconds)
+pad_lp=filtfilthd(Lp,pad_hp);
+% remove the paddings that contain the edge artifacts
+filtered_data=pad_lp((size(padding,1)+1):(size(padding,1)+size(detrend_data,1)),:);
 
-    % organize into one second epochs
-    nepochs=floor(length(filtered_data)/Fs);
-    nchans=size(filtered_data,2);
-    epochdata=zeros(nepochs,Fs,nchans);
-    for e = 1: nepochs
-        epochdata(e,:,:)=filtered_data((1+(e-1)*Fs):(Fs+(e-1)*Fs),:);
-    end
-    clearvars filtered_data e 
-    % keep the output epochdata
+% remove some variables to clean up some space on the memory 
+clearvars Data rData detrend_data detrend_pad pad_hp pad_lp padding
+% keep the output filtered_data
 
-    % identify bad chan and epochs by standard deviation
-    % compute standard deviations
-    eegstd=squeeze(std(epochdata,[],1));
-    chanstd=sum(eegstd,2);
-    epochstd=sum(eegstd,1);
-    
-    % Threshhold epochs by standard deviation criteria and remove them.
-    % In principle you could threshold channels this way too.  
-    % But, I think with 32 channels you need to avoid that.  
-    % With 128 or more chanels you could.
-    badchan = find(epochstd / median(epochstd) > chan_threshold);
-    goodchan = setdiff(1:nchans,badchan);
-    
-    badepoch = find(chanstd / median(chanstd) > var_threshold);
-    goodepoch = setdiff(1:nepochs, badepoch);
-    
-    % remove bad epochs and connect back to 2 dimenstion matrix (time x chan)
-    good_epochdata=squeeze(epochdata(goodepoch,:,:));
-    good_filtered_data=zeros(length(goodepoch)*Fs,nchans);
-    for n = 1:length(goodepoch)
-        good_filtered_data(((1+(n-1)*Fs):(Fs+(n-1)*Fs)),:)=squeeze(good_epochdata(n,:,:));
-    end
-
-    clearvars epochdata epochstd eegstd cahnstd good_epochdata n
-    % keep the output good_filtered_data
-
-    % run ICA
-    [icasig, A, W] = fastica(good_filtered_data');  % a few minutes
-
-    % Combine badchan and eyechans into dubious chans 
-    % to compute the correlation of each component with these dubious contaminated channels
-    dubious_chans =unique([badchan eyechans_ind]);
-
-    % Compute correlation with dubious chans (It take a few seconds)
-    corrs=zeros(length(dubious_chans),size(icasig,1));
-    for du = 1:length(dubious_chans)
-        corrs(du, :)=corr(icasig',good_filtered_data(:,dubious_chans(du)));
-    end
-    corrsmax = max(corrs);
-
-    % Detect which components are not too correlated with dubious channels
-    badcomponents = abs(corrsmax) >= corr_threshold; 
-    display(['bad components: ' num2str(find(badcomponents))] )% display the bad components
-    goodcomponents = abs(corrsmax) < corr_threshold;
-
-    % Further detect bad ones in the goodcomponents by examing the weight
-    % proportion in A (mixing matrix)
-    proportion_threshold=0.6; % if any cahnnel weighted higher than 0.6 in A
-    chancomponents = zeros(size(icasig,1),1);
-    B = zeros(nchans,size(icasig,1)); % 208 channel x 208 components
-    for n = 1:size(icasig,1) % loop through all 208 components
-        B(:,n)=A(:,n).^2 / sum(A(:,n).^2);
-        chancomponents(n)=max(B(:,n));
-        if chancomponents(n) > proportion_threshold
-            display(['detect bad component - ' num2str(n)])
-            goodcomponents(n)=0; % remove it from good components
-        end
-    end
-    
-    % Restore the data without the bad components.
-    mixedsig=A(:,goodcomponents)*icasig(goodcomponents,:);  
-
-    % Inserting the periphereal channels back in place with zeros
-    % Because we need to use full 256 channel in oredr to import into MNE
-    preprocessed_eeg = zeros(256, size(mixedsig, 2));
-    i = 1;
-    for c = 1:256
-        if ~ismember(c, ch_peripheral)
-            preprocessed_eeg(c, :) = mixedsig(i, :);
-            i = i + 1;
-        end
-    end
-    clearvars icasig A W corrsmax du  n  mixedsig good_filtered_data
-    % Keep the output preprocessed_eeg
-
-    % Get the original index of the dubious chans in the 256 index
-    ch_dubious=nan(1,length(dubious_chans));
-    for i = 1:length(dubious_chans)
-        ch_dubious(i) = central_chanlocs(dubious_chans(i)).urchan;
-    end
-
-    % Save the cleaned data at your destination directory such as 
-    % cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_cleaned/
-    save([num2str(subject_ID) '.mat'],'preprocessed_eeg','Fs','ch_dubious','ch_peripheral','ch_labels','chanlocs','subject_ID')
-    
-    display(['Complete one file: ' num2str(subj_files(f)) '.mat ********************'])
-    toc
+% organize into one second epochs
+nepochs=floor(length(filtered_data)/Fs);
+nchans=size(filtered_data,2);
+epochdata=zeros(nepochs,Fs,nchans);
+for e = 1: nepochs
+    epochdata(e,:,:)=filtered_data((1+(e-1)*Fs):(Fs+(e-1)*Fs),:);
 end
+clearvars filtered_data e 
+% keep the output epochdata
+
+% identify bad chan and epochs by standard deviation
+% compute standard deviations
+eegstd=squeeze(std(epochdata,[],1));
+chanstd=sum(eegstd,2);
+epochstd=sum(eegstd,1);
+    
+% Threshhold epochs by standard deviation criteria and remove them.
+% In principle you could threshold channels this way too.  
+% But, I think with 32 channels you need to avoid that.  
+% With 128 or more chanels you could.
+badchan = find(epochstd / median(epochstd) > chan_threshold);
+goodchan = setdiff(1:nchans,badchan);
+    
+badepoch = find(chanstd / median(chanstd) > var_threshold);
+goodepoch = setdiff(1:nepochs, badepoch);
+    
+% remove bad epochs and connect back to 2 dimenstion matrix (time x chan)
+good_epochdata=squeeze(epochdata(goodepoch,:,:));
+good_filtered_data=zeros(length(goodepoch)*Fs,nchans);
+for n = 1:length(goodepoch)
+    good_filtered_data(((1+(n-1)*Fs):(Fs+(n-1)*Fs)),:)=squeeze(good_epochdata(n,:,:));
+end
+
+clearvars epochdata epochstd eegstd cahnstd good_epochdata n
+% keep the output good_filtered_data
+
+% run ICA
+[icasig, A, W] = fastica(good_filtered_data');  % a few minutes
+
+% Combine badchan and eyechans into dubious chans 
+% to compute the correlation of each component with these dubious contaminated channels
+dubious_chans =unique([badchan eyechans_ind]);
+
+% Compute correlation with dubious chans (It take a few seconds)
+corrs=zeros(length(dubious_chans),size(icasig,1));
+for du = 1:length(dubious_chans)
+    corrs(du, :)=corr(icasig',good_filtered_data(:,dubious_chans(du)));
+end
+corrsmax = max(corrs);
+
+% Detect which components are not too correlated with dubious channels
+badcomponents = abs(corrsmax) >= corr_threshold; 
+display(['bad components: ' num2str(find(badcomponents))] )% display the bad components
+goodcomponents = abs(corrsmax) < corr_threshold;
+
+% Further detect bad ones in the goodcomponents by examing the weight
+% proportion in A (mixing matrix)
+proportion_threshold=0.6; % if any cahnnel weighted higher than 0.6 in A (This value can be adjusted as needed)
+chancomponents = zeros(size(icasig,1),1);
+B = zeros(nchans,size(icasig,1)); % 208 channel x 208 components
+for n = 1:size(icasig,1) % loop through all 208 components
+    B(:,n)=A(:,n).^2 / sum(A(:,n).^2);
+    chancomponents(n)=max(B(:,n));
+    if chancomponents(n) > proportion_threshold
+        display(['detect bad component - ' num2str(n)])
+        goodcomponents(n)=0; % remove it from good components
+    end
+end
+    
+% Restore the data without the bad components.
+mixedsig=A(:,goodcomponents)*icasig(goodcomponents,:);  
+
+% Inserting the periphereal channels back in place with zeros
+% Because we need to use full 256 channel in oredr to import into MNE
+preprocessed_eeg = zeros(256, size(mixedsig, 2));
+i = 1;
+for c = 1:256
+    if ~ismember(c, ch_peripheral)
+        preprocessed_eeg(c, :) = mixedsig(i, :);
+        i = i + 1;
+    end
+end
+clearvars icasig A W corrsmax du  n  mixedsig good_filtered_data
+% Keep the output preprocessed_eeg
+
+% Get the original index of the dubious chans in the 256 index
+ch_dubious=nan(1,length(dubious_chans));
+for i = 1:length(dubious_chans)
+    ch_dubious(i) = central_chanlocs(dubious_chans(i)).urchan;
+end
+
+% Save the cleaned data at your destination directory such as 
+% cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_cleaned/
+save([num2str(subject_ID) '.mat'],'preprocessed_eeg','Fs','ch_dubious','ch_peripheral','ch_labels','chanlocs','subject_ID')
+
+display(['Complete one file: ' num2str(subj_files(f)) '.mat ********************'])
+toc
+

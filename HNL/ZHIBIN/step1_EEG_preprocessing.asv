@@ -80,14 +80,15 @@ Hp = makefilter(Fs,0.25,0.01,6,20,0);
 Lp = makefilter(Fs,50,51,6,20,0);  
 
 %% setting the thresholds for artifact detection and removal
-% Identify bad channel and epochs by using standard deviation
+% You can adjust these parameters as needed.
+% Identify bad channel and epochs by using standard deviation 
 var_threshold = 2.5;  % normalized variance threshold to reject trials.
 chan_threshold = 2.5;  % to mark bad channels (smaller values are stricter)
 % Identify eye movement component using correlation coefficients
 corr_threshold = 0.4;  % threshold for identifying whether an ICA component contains eye movement. (smaller values are stricter)
 
 
-%% Loop through the raw data of each patient: filter, clean and run ICA
+%% Select the raw data of each patient: filter, clean and run ICA
 for f=1:61 % loop through 61 patients
     tic
     % Navigate the data directory such as
@@ -171,7 +172,6 @@ for f=1:61 % loop through 61 patients
     badcomponents = abs(corrsmax) >= corr_threshold; 
     display(['bad components: ' num2str(find(badcomponents))] )% display the bad components
     goodcomponents = abs(corrsmax) < corr_threshold;
-    display(['number of good components thus far: ' num2str(sum(goodcomponents))])  % number of goodcomponents left thus far
 
     % Further detect bad ones in the goodcomponents by examing the weight
     % proportion in A (mixing matrix)
@@ -186,13 +186,12 @@ for f=1:61 % loop through 61 patients
             goodcomponents(n)=0; % remove it from good components
         end
     end
-    display(['good components left: ' num2str(sum(goodcomponents))])
     
-    % recombine data without bad components.
+    % Restore the data without the bad components.
     mixedsig=A(:,goodcomponents)*icasig(goodcomponents,:);  
 
-    % inserting the periphereal channels back in place with zeros
-    % need to use full 256 channel for mne template
+    % Inserting the periphereal channels back in place with zeros
+    % Because we need to use full 256 channel in oredr to import into MNE
     preprocessed_eeg = zeros(256, size(mixedsig, 2));
     i = 1;
     for c = 1:256
@@ -202,16 +201,16 @@ for f=1:61 % loop through 61 patients
         end
     end
     clearvars icasig A W corrsmax du  n  mixedsig good_filtered_data
-    % output preprocessed_eeg
+    % Keep the output preprocessed_eeg
 
-    % get the original index of the dubious chans
+    % Get the original index of the dubious chans in the 256 index
     ch_dubious=nan(1,length(dubious_chans));
     for i = 1:length(dubious_chans)
         ch_dubious(i) = central_chanlocs(dubious_chans(i)).urchan;
     end
 
-    % save the cleaned data
-    cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_cleaned/
+    % Save the cleaned data at your destination directory such as 
+    % cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_cleaned/
     save([num2str(subject_ID) '.mat'],'preprocessed_eeg','Fs','ch_dubious','ch_peripheral','ch_labels','chanlocs','subject_ID')
     
     display(['Complete one file: ' num2str(subj_files(f)) '.mat ********************'])
