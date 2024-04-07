@@ -4,8 +4,8 @@
 % #####################################################################################################################
 
 
-%% This script process the 256 channel EGI raw EEG data
-% some basic settings in this sections
+% This script process the 256 channel EGI raw EEG data
+%% some basic settings
 clear
 % These are 49 channels on the pheripheral and Cz chanel (#257)
 ch_peripheral_cz=[241 242 243 238 239 240 ...
