@@ -81,9 +81,9 @@ save('./base_files/corti_ave_source.mat','corti_ave_source_coor','corti_ave_sour
 % corti_roiNames: names of the 448 cortical ROIs
 
 % get inverse matrix for source localization
-% You will to add the following repo to your path:
+% You will neded to add the following repo to your path:
 % https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh/tree/main/Simulations/util
-addpath ../../../AdaptiveGraphicalLassoforParCoh/Simulations/util % this is my local path
+addpath ../../../AdaptiveGraphicalLassoforParCoh/Simulations/util/ % this is my local path
 [inversemat] = inversemodel(leadfield,'prctile',1);
 
 % select one patient to run source localization (f=1:61)
@@ -91,7 +91,7 @@ subj_files=[0:1:60]; % all patient files
 f=3; % select one patient 
 
 % load the cleaned EEG file
-% Navigate to your cleaned preprocessed EEG data directory:
+% Navigate to your cleaned preprocessed EEG data directory, such as:
 % cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_cleaned
 % cd /ssd/zhibin/archive/EEG_stroke_62_cleaned
 % load the preprocessed EEG file for one patient
