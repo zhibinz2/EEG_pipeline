@@ -24,7 +24,7 @@ ch_peripheral(end)=[];
 Fs=1000;
 
 % channel location information (coordinates)
-chanlocs = load('./base_files/chanlocs.mat');
+chanlocs = load('./base_files/MNE/EGI256/chanlocs.mat');
 chanlocs = chanlocs.chanlocs;
 % we have to keep only 256 channel to meet MNE's data format for the building of brain model 
 chanlocs(257)=[]; % Channel 257 is Cz, which is default device reference (values are all zeros)
