@@ -92,6 +92,10 @@ corr_threshold = 0.4;  % threshold for identifying whether an ICA component cont
 subj_files=[0:1:60];
 f=3; % select one patient (f=1:61)
 
+% Dependencies
+% add this repo to your path for the functions such as makefilter, filtfilthd, fastica
+addpath(genpath('../matlab_zhibin/tree/main/EEG/hnl')); 
+
 tic
 % Navigate the data directory such as
 % cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_reorganized
