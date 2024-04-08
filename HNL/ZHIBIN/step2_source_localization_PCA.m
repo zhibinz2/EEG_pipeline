@@ -3,19 +3,21 @@
 % Created by Zhibin 4/6/2024
 % #####################################################################################################################
 
-% This script process the 256 channel EGI raw EEG data
+% This script does the source localization (inverse solution) for the 256 channel EGI raw EEG data
+% And run PCA to aggreate source data in each ROI of the 448 cortical areas
+clear
 %% Construct brain model and create forward matrix in MNE
+% Refer to MNE_construct_source.ipynb to create the leadfield matrix
+% load forward matrix and source
+load('base_files/MNE/EGI256/MNE_source_model.mat','leadfield','source_rr');
+% leadfield: leadfield matrix from MNE (256 EEG channels X 5124 brain sources)
+% source_rr: coordinates of the 5124 brain sources
 
 %% Source localization 
-% load forward matrix and source
-clear
-load('./base_files/brain_source.mat');
 
 
 % roiNames_250: labels for 463 ROIs (448 cortical + 15 subcortical ROIs)
 % scale250_subcortROIs: indices for 15 subcortical ROIs in roiNames_250
-% leadfield: leadfield matrix from MNE (256 EEG channels X 5124 brain sources)
-% source_rr: coordinates of the 5124 brain sources
 
 % corti_ave_source_coor: coordinates for 448 cortical ROIs
 % corti_ave_source_labl: indices for 448 cortical ROIs in roiNames_250
