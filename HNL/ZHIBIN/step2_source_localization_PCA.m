@@ -105,26 +105,19 @@ source_data=inversemat*preprocessed_eeg;
 
 %% PCA to aggregate cortical source data
 % PCA to aggregate source data in each ROI
-% fra_eigenvalues=zeros(1,max(unique(source_labels))); % no need to include
 corti_source_data=[];
 for sr=1:max(unique(source_labels))
     I=find(source_labels==sr); % need to load save and load this source_labels
     if ~isempty(I)
         [~, SCORE, LATENT] = pca(source_data(I,:)','Centered',false);
-        % fra_eigenvalues(sr)=LATENT(1)/sum(LATENT); % weight of 1st eigenvalue
         corti_source_data=[corti_source_data SCORE(:,1)];
     end
 end % 66s
-
-% remove the non-zeros fraction of eigenvalues and subcortical rois
-% corti_fra_eigenvalues=fra_eigenvalues(ave_source_label); % no need to include
-% need to load save and load this ave_source_label
     
-% remove subcortical roi
+% remove source data of the subcortical ROIs
 corti_source_data(:,ind)=[];
-% need to load save and load this ind?
 
-% save source data of the aggregated source data for cortical ROIs
+% save the aggregated source data for the 448 cortical ROIs
 % navegate the your destination directory, such as
 % cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_corti_source
 save([num2str(subject_ID) '.mat'],'corti_fra_eigenvalues', ...
