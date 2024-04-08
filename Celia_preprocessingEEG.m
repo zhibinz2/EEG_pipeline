@@ -65,8 +65,7 @@ for s = 1 : numel(fileSel)
         EEG_remove = pop_runica(EEG_remove, 'icatype', 'runica', 'extended',1,'interrupt','on');
         EEG_remove = pop_iclabel(EEG_remove, 'default');
 
-        EEG_remove = pop_icflag(EEG_remove, 
-);
+        EEG_remove = pop_icflag(EEG_remove,IC_threshold);
         EEG_clean = pop_subcomp(EEG_remove, [],0);
         EEG_clean.etc.ic_classification.ICLabel = EEG_remove.etc.ic_classification.ICLabel;
         EEG_clean.etc.ic_classification.ICLabel.ic_removed = EEG_clean.etc.ic_classification.ICLabel.classifications  >= IC_threshold(:,1)';
