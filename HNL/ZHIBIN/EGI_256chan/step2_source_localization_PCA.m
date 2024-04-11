@@ -9,13 +9,13 @@ clear
 %% Construct brain model and create forward matrix in MNE
 % Refer to MNE_construct_source.ipynb to create the leadfield matrix
 % load forward matrix and source
-load('base_files/MNE/EGI256/MNE_source_model.mat','leadfield','source_rr');
+load('../base_files/MNE/EGI256/MNE_source_model.mat','leadfield','source_rr');
 % leadfield: leadfield matrix from MNE (256 EEG channels X 5124 brain sources)
 % source_rr: coordinates of the 5124 brain sources
 
 %% Source localization 
 % load the brain model, ROI names and localation files for the 463 ROIs
-load('base_files/brain_ROIs.mat','Brain','roiNames_250','scale250_subcortROIs','parcels')
+load('../base_files/brain_ROIs.mat','Brain','roiNames_250','scale250_subcortROIs','parcels')
 % Brain: The brain model of Lausanne2008_fsaverageDSsurf
 % parcels: contain indices of 463 ROIs in a 3d brain matrix (256x256x256)
 % roiNames_250: labels for 463 ROIs (448 cortical + 15 subcortical ROIs) (scale 250)
@@ -75,7 +75,7 @@ ave_source_label(ind)=[];
 corti_ave_source_coor=ave_source_coor;
 corti_ave_source_labl=ave_source_label;
 corti_roiNames=roiNames_250(corti_ave_source_labl);
-save('./base_files/corti_ave_source.mat','corti_ave_source_coor','corti_ave_source_labl','corti_roiNames');
+save('../base_files/corti_ave_source.mat','corti_ave_source_coor','corti_ave_source_labl','corti_roiNames');
 % corti_ave_source_coor: coordinates for 448 cortical ROIs
 % corti_ave_source_labl: indices for 448 cortical ROIs in roiNames_250
 % corti_roiNames: names of the 448 cortical ROIs
