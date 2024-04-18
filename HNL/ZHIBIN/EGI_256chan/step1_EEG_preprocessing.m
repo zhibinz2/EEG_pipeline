@@ -24,7 +24,7 @@ ch_peripheral(end)=[];
 Fs=1000;
 
 % channel location information (coordinates)
-chanlocs = load('./base_files/MNE/EGI256/chanlocs.mat');
+chanlocs = load('../base_files/MNE/EGI256/chanlocs.mat');
 chanlocs = chanlocs.chanlocs;
 % we have to keep only 256 channel to meet MNE's data format for the building of brain model 
 chanlocs(257)=[]; % Channel 257 is Cz, which is default device reference (values are all zeros)
@@ -94,7 +94,7 @@ f=3; % select one patient (f=1:61)
 
 % Dependencies
 % add this repo to your path for the functions such as makefilter, filtfilthd, fastica
-addpath(genpath('../matlab_zhibin/tree/main/EEG/hnl')); 
+addpath(genpath('../../../../matlab_zhibin/tree/main/EEG/hnl')); 
 
 tic
 % Navigate the data directory such as
