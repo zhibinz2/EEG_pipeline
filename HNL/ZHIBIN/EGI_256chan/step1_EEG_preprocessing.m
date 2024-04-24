@@ -85,7 +85,7 @@ Lp = makefilter(Fs,50,51,6,20,0);
 var_threshold = 2.5;  % normalized variance threshold to reject trials.
 chan_threshold = 2.5;  % to mark bad channels (smaller values are stricter)
 % Identify eye movement component using correlation coefficients
-corr_threshold = 0.4;  % threshold for identifying whether an ICA component contains eye movement. (smaller values are stricter)
+corr_threshold = 0.5;  % threshold for identifying whether an ICA component contains eye movement. (smaller values are stricter)
 
 
 %% Select the raw data of one patient: filter, clean and run ICA
@@ -179,19 +179,37 @@ badcomponents = abs(corrsmax) >= corr_threshold;
 display(['bad components: ' num2str(find(badcomponents))] )% display the bad components
 goodcomponents = abs(corrsmax) < corr_threshold;
 
-% Further detect bad ones in the goodcomponents by examing the weight
+% Option 1
+% further detect bad ones in the goodcomponents by examing the weight
 % proportion in A (mixing matrix)
-proportion_threshold=0.6; % if any cahnnel weighted higher than 0.6 in A (This value can be adjusted as needed)
+proportion_threshold=0.7; % if dubious channel weighted higher than 0.7 in A
 chancomponents = zeros(size(icasig,1),1);
-B = zeros(nchans,size(icasig,1)); % 208 channel x 208 components
+B = zeros(1,size(icasig,1)); % 1 x 208 components
 for n = 1:size(icasig,1) % loop through all 208 components
-    B(:,n)=A(:,n).^2 / sum(A(:,n).^2);
-    chancomponents(n)=max(B(:,n));
+    B(1,n)=sum(abs(A(dubious_chans,n))) / sum(abs(A(:,n)));
+    chancomponents(n)=B(1,n);
     if chancomponents(n) > proportion_threshold
         display(['detect bad component - ' num2str(n)])
         goodcomponents(n)=0; % remove it from good components
     end
 end
+display(['good components left: ' num2str(sum(goodcomponents))])
+numGoodcompoLeft(2,f)=sum(goodcomponents);
+
+% % Option 2
+% % Further detect bad ones in the goodcomponents by examing the weight
+% % proportion in A (mixing matrix)
+% proportion_threshold=0.7; % if any cahnnel weighted higher than 0.7 in A (This value can be adjusted as needed)
+% chancomponents = zeros(size(icasig,1),1);
+% B = zeros(nchans,size(icasig,1)); % 208 channel x 208 components
+% for n = 1:size(icasig,1) % loop through all 208 components
+%     B(:,n)=A(:,n).^2 / sum(A(:,n).^2);
+%     chancomponents(n)=max(B(:,n));
+%     if chancomponents(n) > proportion_threshold
+%         display(['detect bad component - ' num2str(n)])
+%         goodcomponents(n)=0; % remove it from good components
+%     end
+% end
     
 % Restore the data without the bad components.
 mixedsig=A(:,goodcomponents)*icasig(goodcomponents,:);  
