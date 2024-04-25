@@ -7,7 +7,7 @@
 % And run PCA to aggreate source data in each ROI of the 448 cortical areas
 clear
 %% Construct brain model and create forward matrix in MNE
-% Refer to MNE_construct_source.ipynb to create the leadfield matrix
+% Refer to ../EGI_256chan/MNE_construct_source.ipynb to create the leadfield matrix
 % load forward matrix and source
 load('../base_files/MNE/EGI256/MNE_source_model.mat','leadfield','source_rr');
 % leadfield: leadfield matrix from MNE (256 EEG channels X 5124 brain sources)

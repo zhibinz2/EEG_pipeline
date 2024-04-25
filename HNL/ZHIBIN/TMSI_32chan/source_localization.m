@@ -13,14 +13,16 @@
 % And run PCA to aggreate source data in each ROI of the 448 cortical areas
 clear
 %% Construct brain model and create forward matrix in MNE
-
+% Refer to ../TMSI_32chan/MNE_construct_source.ipynb to create the leadfield matrix
+% load forward matrix and source
+load('../base_files/MNE/TMSI32/leadfield.mat','leadfield');
+load('../base_files/MNE/TMSI32/source_rr.mat','source_rr');
+% leadfield: leadfield matrix from MNE (256 EEG channels X 5124 brain sources)
+% source_rr: coordinates of the 5124 brain sources
 
 %% Source localization 
 
-% cd /home/zhibinz2/Documents/GitHub/MEG_EEG_Source_Localization/PCA_32chan_AGL
 
-cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/base_files/MNE/TMSI32
-load('source_rr.mat','source_rr');
 load('Lausanne2008_fsaverageDSsurf_60_125_250.mat','Brain','roiNames_250','scale250_subcortROIs')
 % label the sources
 Vertex=Brain.Vertex;
