@@ -23,33 +23,19 @@ for freqBand=1:6
 end
 
 % AGL variables
+% https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh
 addpath(genpath('/home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh'))
 allLambdas = fliplr([.6,.5,.4,.3,.2,.175,.15,.125, .1, .075, .05, .025, .01]);
 allLambdasOut = fliplr([.6,.5,.4,.3,.2,.175,.15,.125, .1, .075, .05, .025, .01]);
 n_Lambdas=length(allLambdas); % number of lambda values
 min_LamdaIn = min(allLambdas);
 
-% load one individual Reduced connectome for AGL
-cd /home/zhibinz2/Documents/GitHub/STROKE_P61/getLesionMaskConnectome_nonflip_p61
-load('Connectome_p61.mat', 'redConnectome_p61')
-p=1;% pick one patient
-redC_mat=squeeze(redConnectome_p61(p,:,:));
-cd /home/zhibinz2/Documents/GitHub/STROKE_P61
-load("source_info.mat")
-SC_p=logical(redC_mat(source_roi_index,source_roi_index));% select the cortical rois
-% cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_corti_source
-% load('corti_ave_source_labl.mat')
-% SC_p=logical(redC_mat(corti_ave_source_labl,corti_ave_source_labl));
-
-
-% penalty selection and fit precision
-cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_corti_source
-load('0.mat');% load the EEG source time series from one subject
-downsample_data=resample(double(corti_source_data),1,downsample,'Dimension',1); % downsample 
+% load example data and individual connectome for AGL
+load("AGL_example_data.mat",'AGL_example_data','Individual_Connectome')
 
 % pick a frequency to process the data
 freq=1; % delta
-filtered_data = filter(filt_ds{freq},downsample_data);
+filtered_data = filter(filt_ds{freq},AGL_example_data);
 hilbertdata = hilbert(filtered_data');
 % combined real and imaginary part
 sourceDataReal = cat(1,real(hilbertdata),imag(hilbertdata));
@@ -61,26 +47,26 @@ sam_size=floor(sam_len/n_split); sam_range=1:sam_size;
 sourceDataReal = sourceDataReal(1:n_split*sam_size,:);
 datareshaped = reshape(sourceDataReal, sam_size, n_split, n_sr);
 datapermuted = permute(datareshaped,[2,3,1]); % split into 2 ensambles: 2x896x9300
-datapermuted_cov=nan(n_split,n_sr,n_sr);
-
 % compute covariance
+datapermuted_cov=nan(n_split,n_sr,n_sr);
 stroke_Cov = cov(sourceDataReal);
 for n=1:n_split
     datapermuted_cov(n,:,:) = cov([squeeze(datapermuted(n,:,:))]');
 end
 
 % AGL
+% penalty selection and fit precision
 % cd /home/zhibinz2/Documents/GitHub/MEG_EEG_Source_Localization/PCA_32chan_AGL
 addpath(genpath('./AGL_util'));
 dataCovs_op=squeeze(datapermuted_cov);
 tic
 [penalizationIn_op,penalizationOut_op,minDev_op]=penaltyselection( ...
-SC_p,allLambdas,allLambdasOut,dataCovs_op);
+Individual_Connectome,allLambdas,allLambdasOut,dataCovs_op);
 toc % take 701 seconds for this example
 
 tic
 [stroke_Pcov] = fitprecision( ...
-SC_p,penalizationIn_op,penalizationOut_op,min_LamdaIn,stroke_Cov);
+Individual_Connectome,penalizationIn_op,penalizationOut_op,min_LamdaIn,stroke_Cov);
 toc % take 277 seconds for this example
 
 % add this repo to your path (https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh)
@@ -88,5 +74,5 @@ addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulati
 
 % convert real value covariance to complex matrix (448x448) 
 % then compute coherence
-stroke_coh=normalizeCSD(r2c(stroke_Cov)); % coherence
+stroke_coh=normalizeCSD(r2c(stroke_Cov)); % ordinary coherence
 stroke_Pcoh=normalizeCSD(r2c(logical(stroke_Pcov)));% partial coherence using boolean

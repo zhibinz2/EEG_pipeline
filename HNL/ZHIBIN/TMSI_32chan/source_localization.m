@@ -21,8 +21,6 @@ load('../base_files/MNE/TMSI32/source_rr.mat','source_rr');
 % source_rr: coordinates of the 5124 brain sources
 
 %% Source localization 
-
-
 load('Lausanne2008_fsaverageDSsurf_60_125_250.mat','Brain','roiNames_250','scale250_subcortROIs')
 % label the sources
 Vertex=Brain.Vertex;

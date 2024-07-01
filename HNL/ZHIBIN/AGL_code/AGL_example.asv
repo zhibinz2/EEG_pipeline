@@ -23,31 +23,39 @@ for freqBand=1:6
 end
 
 % AGL variables
-addpath(genpath('/../../AdaptiveGraphicalLassoforParCoh/'))
+% https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh
+addpath(genpath('/home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh'))
 allLambdas = fliplr([.6,.5,.4,.3,.2,.175,.15,.125, .1, .075, .05, .025, .01]);
 allLambdasOut = fliplr([.6,.5,.4,.3,.2,.175,.15,.125, .1, .075, .05, .025, .01]);
 n_Lambdas=length(allLambdas); % number of lambda values
 min_LamdaIn = min(allLambdas);
 
-% load one individual Reduced connectome for AGL
-cd /home/zhibinz2/Documents/GitHub/STROKE_P61/getLesionMaskConnectome_nonflip_p61
-load('Connectome_p61.mat', 'redConnectome_p61')
-p=1;% pick one patient
-redC_mat=squeeze(redConnectome_p61(p,:,:));
-cd /home/zhibinz2/Documents/GitHub/STROKE_P61
-load("source_info.mat")
-SC_p=logical(redC_mat(source_roi_index,source_roi_index));% select the cortical rois
+% load example data and individual connectome for AGL
+% cd /home/zhibinz2/Documents/GitHub/STROKE_P61/getLesionMaskConnectome_nonflip_p61
+% load('Connectome_p61.mat', 'redConnectome_p61')
+% p=1;% pick one patient
+% redC_mat=squeeze(redConnectome_p61(p,:,:));
+% cd /home/zhibinz2/Documents/GitHub/STROKE_P61/lesion_mask_on_L_p61
+% load('Connectome_p61.mat','redConnectome_p61')
+% p=1;% pick one patient
+% redC_mat=squeeze(redConnectome_p61(p,:,:));
+% cd /home/zhibinz2/Documents/GitHub/STROKE_P61
+% load("source_info.mat",'source_roi_index')
+% SC_p=logical(redC_mat(source_roi_index,source_roi_index));% select the cortical rois
+Individual_Connectome=SC_p;
+% save("Individual_redConnectome.mat","Individual_redConnectome")
+
+
 
 % penalty selection and fit precision
-cd /home/zhibinz2/Documents/GitHub/archive/EEG_stroke_62_corti_source
-load('corti_ave_source_labl.mat')
-load('0.mat');% load the EEG source time series from one subject
-downsample_data=resample(double(corti_source_data),1,downsample,'Dimension',1); % downsample 
+
+load("AGL_example_data.mat",'AGL_example_data','Individual_Connectome')
 
 % pick a frequency to process the data
 freq=1; % delta
-filtered_data = filter(filt_ds{freq},downsample_data);
+filtered_data = filter(filt_ds{freq},AGL_example_data);
 hilbertdata = hilbert(filtered_data');
+% combined real and imaginary part
 sourceDataReal = cat(1,real(hilbertdata),imag(hilbertdata));
 sourceDataReal = [sourceDataReal*(1/mean(abs(sourceDataReal(:))))]'; % normalize data
 % split into 2 ensambles: 2 x #source x #(samples/2)
@@ -58,6 +66,7 @@ sourceDataReal = sourceDataReal(1:n_split*sam_size,:);
 datareshaped = reshape(sourceDataReal, sam_size, n_split, n_sr);
 datapermuted = permute(datareshaped,[2,3,1]); % split into 2 ensambles: 2x896x9300
 datapermuted_cov=nan(n_split,n_sr,n_sr);
+
 % compute covariance
 stroke_Cov = cov(sourceDataReal);
 for n=1:n_split
@@ -70,12 +79,12 @@ addpath(genpath('./AGL_util'));
 dataCovs_op=squeeze(datapermuted_cov);
 tic
 [penalizationIn_op,penalizationOut_op,minDev_op]=penaltyselection( ...
-SC_p,allLambdas,allLambdasOut,dataCovs_op);
+Individual_Connectome,allLambdas,allLambdasOut,dataCovs_op);
 toc % take 701 seconds for this example
 
 tic
 [stroke_Pcov] = fitprecision( ...
-SC_p,penalizationIn_op,penalizationOut_op,min_LamdaIn,stroke_Cov);
+Individual_Connectome,penalizationIn_op,penalizationOut_op,min_LamdaIn,stroke_Cov);
 toc % take 277 seconds for this example
 
 % add this repo to your path (https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh)
