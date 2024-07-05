@@ -33,19 +33,15 @@ Fs=500;
 % Channel 1 to 29 is EEG
 % Channel 33 is agonist muscle
 % Channel 34 is Antagonist muscle
-EEGchs=1:29;
-L_Flex=33;
-L_Exte=34;
 
-
-data=GripL.Data; % pick data from L (Lesion side)
+data=GripL; % pick data from L (Lesion side)
 tr=10; % pick a trial
+EEGchs=1:29;
+L_flex=33;
+L_exte=34;
 
 figure;
-subplot(211);
-plot(1:5000,squeeze(data(EEGchs,:,tr))');
-subplot(212);
-plot(1:5000,squeeze(data([L_Flex L_Exte],:,tr))');
+plot(1:5000,data(EEGchs,:,))
 
 %% WCA_WMSC Method
 
