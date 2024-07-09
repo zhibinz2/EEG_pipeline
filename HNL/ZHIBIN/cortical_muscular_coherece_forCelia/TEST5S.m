@@ -77,6 +77,27 @@ for i=1:31
 end
 toc % it takes about 30s
 
+figure;
+for tp=1:10
+    subplot(1,10,tp)
+    imagesc(squeeze(WMSC_mat(tp,:,:)));
+    title([num2str(ts(tp)/rate) ' second'])
+    colorbar
+end
+sgtitle('WMSC (Magnitude-squared coherence) over 10 seonds')
+
+% set a threshold of 0.4 and convert to binary logical values
+WMSC_mat_binary=zeros(size(WMSC_mat));
+WMSC_mat_binary(WMSC_mat>0.4)=1;
+
+figure;
+for tp=1:10
+    subplot(1,10,tp)
+    imagesc(squeeze(WMSC_mat_binary(tp,:,:)));
+    title([num2str(ts(tp)/rate) ' second'])
+    colorbar
+end
+sgtitle('Binary matricies for network analysis')
 %% HNL Method
 Fs=500;
 srnew = 200;
@@ -116,4 +137,18 @@ addpath(genpath('/home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh
 % convert real value covariance to complex matrix (448x448) 
 % then compute coherence
 stroke_coh=normalizeCSD(r2c(stroke_Cov)); % ordinary coherence
+
+% set a threshold of 0.4 and convert to binary logical values
+stroke_coh_binary=zeros(size(stroke_coh));
+stroke_coh_binary(stroke_coh>0.4)=1;
+
+figure;
+subplot(121)
+imagesc(stroke_coh);colorbar
+title('coherence')
+subplot(122)
+imagesc(stroke_coh_binary);colorbar
+sgtitle('Binary matricies for network analysis')
+
+save('stroke_coh.mat','WMSC_mat','stroke_coh','WMSC_mat_binary','stroke_coh_binary')
 

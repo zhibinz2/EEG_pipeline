@@ -47,7 +47,7 @@ plot(1:5000,squeeze(data(EEGchs,:,tr))');
 subplot(212);
 plot(1:5000,squeeze(data([L_Flex L_Exte],:,tr))');
 
-%% WCA_WMSC Method
+%% WCA_WMSC Method (over time)
 % pick 10 trials
 trs=[1:10];
 trs_data=data([EEGchs L_Flex L_Exte],:,trs);
@@ -77,6 +77,27 @@ for i=1:31
 end
 toc % it takes about 30s
 
+figure;
+for tp=1:10
+    subplot(1,10,tp)
+    imagesc(squeeze(WMSC_mat(tp,:,:)));
+    title([num2str(ts(tp)/rate) ' second'])
+    colorbar
+end
+sgtitle('WMSC (Magnitude-squared coherence) over 10 seonds')
+
+% set a threshold of 0.4 and convert to binary logical values
+WMSC_mat_binary=zeros(size(WMSC_mat));
+WMSC_mat_binary(WMSC_mat>0.4)=1;
+
+figure;
+for tp=1:10
+    subplot(1,10,tp)
+    imagesc(squeeze(WMSC_mat_binary(tp,:,:)));
+    title([num2str(ts(tp)/rate) ' second'])
+    colorbar
+end
+sgtitle('Binary (Magnitude-squared coherence) over 10 seonds')
 %% HNL Method
 Fs=500;
 srnew = 200;
@@ -116,4 +137,11 @@ addpath(genpath('/home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh
 % convert real value covariance to complex matrix (448x448) 
 % then compute coherence
 stroke_coh=normalizeCSD(r2c(stroke_Cov)); % ordinary coherence
+
+figure;
+imagesc(squeeze(WMSC_mat_binary(tp,:,:)));
+
+title('Binary (Magnitude-squared coherence) over 10 seonds')
+
+save('stroke_coh.mat','WMSC_mat','stroke_coh','WMSC_mat_binary','stroke_coh_binary')
 
