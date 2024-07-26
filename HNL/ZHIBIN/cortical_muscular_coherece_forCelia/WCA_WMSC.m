@@ -47,7 +47,8 @@ S2 = mean(s2,1) ; % Signal moyen de l'electrode "2"
 % Wavelet transforms (need wavelet function)
 % Found one in https://github.com/grinsted/wavelet-coherence
 % https://github.com/grinsted/wavelet-coherence/blob/master/private/wavelet.m
-cd /home/zhibinz2/Documents/GitHub/wavelet-coherence/private
+% cd /home/zhibinz2/Documents/GitHub/wavelet-coherence/private
+cd C:\Users\zhouz\GitHub\wavelet-coherence\private
 % cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia
 for i = 1:N
     [WT_S1{i},period,scale,coi] = wavelet(s1(i,:)',dt,Args.Pad,Args.DJ,Args.S0,Args.J1,Args.Mother,Args.Cycles) ;

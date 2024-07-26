@@ -1,5 +1,5 @@
 %% Load data
-cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia
+cd ../../../Celia
 load('P_RODJ20240426_After_Reject.mat')
 Grip=Data_cut.Grip;
 GripL=Grip.L;
@@ -57,7 +57,9 @@ rate=500;
 % pick a frequency to investigate
 freq=2;
 % select the time points to compute network measurements
-ts=(rate:rate:size(s1,2));
+ts=(rate:rate:size(data,2));
+% In the "ts" variable, I simply just picked 10 time points from your averaged WMSC output to continue with. 
+% This is not a good way to represent the data. Just trying to demonstrate this idea as an example.
 
 % loop through all 31 channels in your adjacency matrix of 31x31
 WMSC_mat=nan(10,31,31); % 10 time proints x 31 channels  x 31 channels
@@ -67,7 +69,8 @@ for i=1:31
         s1=squeeze(trs_data(i,:,trs))';
         s2=squeeze(trs_data(j,:,trs))';
 
-        cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/cortical_muscular_coherece_forCelia
+        %cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/cortical_muscular_coherece_forCelia
+        cd C:\Users\zhouz\GitHub\EEG_pipeline\HNL\ZHIBIN\cortical_muscular_coherece_forCelia\
         [WMSC,t,freqs] = WCA_WMSC(s1,s2,rate); % You have to fix the freq range in the function that use your WCA code. I have no idea.
       
         WMSC_tmp=WMSC(freq,ts);
