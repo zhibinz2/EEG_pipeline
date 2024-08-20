@@ -83,7 +83,8 @@ save('../base_files/corti_ave_source.mat','corti_ave_source_coor','corti_ave_sou
 % get inverse matrix for source localization
 % You will neded to add the following repo to your path:
 % https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh/tree/main/Simulations/util
-addpath(genpath('../../../AdaptiveGraphicalLassoforParCoh/Simulations/util/')); % this is my local path
+% addpath(genpath('../../../AdaptiveGraphicalLassoforParCoh/Simulations/util/')); % this is my local path
+cd /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/util
 [inversemat] = inversemodel(leadfield,'prctile',1);
 
 % select one patient to run source localization (f=1:61)

@@ -43,8 +43,12 @@ n_Lambdas=length(allLambdas); % number of lambda values
 min_LamdaIn = min(allLambdas);
 
 % load structure connectome for AGL
-load('scale250_Connectome.mat','fc'); % Virtual-Tractography/ForZhibin/processed_data/scale250_Connectome.mat
-SC=logical(fc(source_labels,source_labels));
+% load('scale250_Connectome.mat','fc'); % Virtual-Tractography/ForZhibin/processed_data/scale250_Connectome.mat
+% SC=logical(fc(source_labels,source_labels));
+
+% alternatively to load a individual structural connectome
+Individual_Connectome=load('AGL_example_data.mat','Individual_Connectome');
+
 
 %% select one file to process
 ses=12; % sesssion 12

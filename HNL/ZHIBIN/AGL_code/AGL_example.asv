@@ -77,3 +77,10 @@ addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulati
 stroke_coh=normalizeCSD(r2c(stroke_Cov)); % ordinary coherence
 stroke_Pcoh=normalizeCSD(r2c(logical(stroke_Pcov)));% partial coherence using boolean
 
+normalizeCSD(r2c(stroke_Pcov));
+
+figure;
+subplot(121)
+imagesc(stroke_Pcoh);colorbar
+subplot(122)
+imagesc(logical(ans));colorbar;
