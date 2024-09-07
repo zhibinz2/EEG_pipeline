@@ -21,12 +21,12 @@ load('../base_files/MNE/TMSI32/source_rr.mat','source_rr');
 % source_rr: coordinates of the 5124 brain sources
 
 %% Source localization 
-load('Lausanne2008_fsaverageDSsurf_60_125_250.mat','Brain','roiNames_250','scale250_subcortROIs')
+load('../base_files/MNE/TMSI32/Lausanne2008_fsaverageDSsurf_60_125_250.mat','Brain','roiNames_250','scale250_subcortROIs')
 % label the sources
 Vertex=Brain.Vertex;
 
 % cd /home/zhibinz2/Documents/GitHub/MEG_EEG_Source_Localization/PCA_32chan_AGL
-load('parcels.mat') % This is the labels
+load('../base_files/MNE/TMSI32/parcels.mat') % This is the labels
 
 % Anni's labeling method
 x_shift=(max(Vertex(:,1))-max(source_rr(:,1))*1e3)/2+(min(Vertex(:,1))-min(source_rr(:,1))*1e3)/2;
@@ -51,7 +51,7 @@ roiNames_250(setdiff(1:463,unique(source_labels))) % 225 227
 
 % load forward matrix
 % cd /home/zhibinz2/Documents/GitHub/MEG_EEG_Source_Localization/PCA_32chan_AGL
-load('leadfield.mat');
+load('../base_files/MNE/TMSI32/leadfield.mat');
 
 % inverse model
 addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/util
