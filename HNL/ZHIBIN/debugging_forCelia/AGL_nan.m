@@ -196,9 +196,14 @@ for freq=1:5%; % beta2
 end
 figure
 for freq=1:5
-    subplot(1,5,freq)
-    imagesc(logical(squeeze(stroke_pcoh5(freq,:,:))))
+    subplot(2,5,freq)
+    imagesc(squeeze(stroke_pcoh5(freq,:,:)))
     colorbar
     title([bandlabels{freq} '   nan#: ' num2str(sum(isnan(stroke_pcoh5(freq,:,:)),'all'))])
+    subplot(2,5,5+freq)
+    imagesc(logical(squeeze(stroke_pcoh5(freq,:,:))))
+    colorbar
+    title([bandlabels{freq} '   binary'])
 end
+sgtitle('partial coherence (EEG)')
 save('output_debug.mat','stroke_pcoh5'); % reconstruire BUG pour patient file
