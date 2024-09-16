@@ -98,11 +98,13 @@ corti_roiNames=roiNames_250(corti_ave_source_labl);
 cd /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/util
 [inversemat] = inversemodel(leadfield,'prctile',1);
 
-%% load Celia's file
+%% load Celia's source data
 cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/Trouble_shooting/wetransfer_calt-mat_2024-09-08_1921
 load('CALT.mat','corti_source_data');
-% shorten it for speed
-AGL_example_data=corti_source_data(5000:15000,:);
+AGL_example_data=round(corti_source_data);
+
+% figure;
+% plot(1:length(AGL_example_data),AGL_example_data);
 
 %% AGL
 cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/AGL_code/
@@ -110,13 +112,17 @@ Fs=1000;
 srnew = 200;
 downsample = Fs/srnew;
 
-passbands = [1 3; 3.5 6.5; 7 10; 10.5 13.5; 14 20; 21 29];
-bandlabels = {'Delta','Theta', 'Alpha', 'Mu', 'Beta1', 'Beta2'};
+% Celia's filter bands
+passbands = [1 4; 4.5 8; 8.5 12; 12.5 30; 30.5 50];
+bandlabels = {'Delta','Theta', 'Alpha', 'Beta', 'Gamma'};
+
+% passbands = [1 3; 3.5 6.5; 7 10; 10.5 13.5; 14 20; 21 29];
+% bandlabels = {'Delta','Theta', 'Alpha', 'Mu', 'Beta1', 'Beta2'};
 
 % make filter
 attenuation=60;
 filt_ds=cell(1,length(passbands));
-for freqBand=1:6
+for freqBand=1:length(passbands)
     % Select frequency
     passFreq1 = passbands(freqBand,1);
     passFreq2 = passbands(freqBand,2);
@@ -135,51 +141,64 @@ allLambdasOut = fliplr([.6,.5,.4,.3,.2,.175,.15,.125, .1, .075, .05, .025, .01])
 n_Lambdas=length(allLambdas); % number of lambda values
 min_LamdaIn = min(allLambdas);
 
-% load individual connectome for AGL
+% load a random individual connectome for AGL
 load("AGL_example_data.mat",'Individual_Connectome')
 
+stroke_pcoh5=nan(5,448,448);
 % pick a frequency to process the data
-freq=6; % beta2
-filtered_data = filter(filt_ds{freq},AGL_example_data);
-hilbertdata = hilbert(filtered_data');
-% combined real and imaginary part
-sourceDataReal = cat(1,real(hilbertdata),imag(hilbertdata));
-sourceDataReal = [sourceDataReal*(1/mean(abs(sourceDataReal(:))))]'; % normalize data
-% split into 2 ensambles: 2 x #source x #(samples/2)
-n_split=2; n_sr=size(sourceDataReal,2);
-sam_len=size(sourceDataReal,1);
-sam_size=floor(sam_len/n_split); sam_range=1:sam_size;
-sourceDataReal = sourceDataReal(1:n_split*sam_size,:);
-datareshaped = reshape(sourceDataReal, sam_size, n_split, n_sr);
-datapermuted = permute(datareshaped,[2,3,1]); % split into 2 ensambles: 2x896x9300
-% compute covariance
-datapermuted_cov=nan(n_split,n_sr,n_sr);
-stroke_Cov = cov(sourceDataReal);
-for n=1:n_split
-    datapermuted_cov(n,:,:) = cov([squeeze(datapermuted(n,:,:))]');
+for freq=1:5%; % beta2
+    filtered_data = filter(filt_ds{freq},AGL_example_data);
+    hilbertdata = hilbert(filtered_data');
+    % combined real and imaginary part
+    sourceDataReal = cat(1,real(hilbertdata),imag(hilbertdata));
+    sourceDataReal = [sourceDataReal*(1/mean(abs(sourceDataReal(:))))]'; % normalize data
+    % split into 2 ensambles: 2 x #source x #(samples/2)
+    n_split=2; n_sr=size(sourceDataReal,2);
+    sam_len=size(sourceDataReal,1);
+    sam_size=floor(sam_len/n_split); sam_range=1:sam_size;
+    sourceDataReal = sourceDataReal(1:n_split*sam_size,:);
+    datareshaped = reshape(sourceDataReal, sam_size, n_split, n_sr);
+    datapermuted = permute(datareshaped,[2,3,1]); % split into 2 ensambles: 2x896x9300
+    % compute covariance
+    datapermuted_cov=nan(n_split,n_sr,n_sr);
+    stroke_Cov = cov(sourceDataReal);
+    for n=1:n_split
+        datapermuted_cov(n,:,:) = cov([squeeze(datapermuted(n,:,:))]');
+    end
+    
+    % AGL
+    % penalty selection and fit precision
+    % cd /home/zhibinz2/Documents/GitHub/MEG_EEG_Source_Localization/PCA_32chan_AGL
+    addpath(genpath('./AGL_util'));
+    dataCovs_op=squeeze(datapermuted_cov);
+    tic
+    [penalizationIn_op,penalizationOut_op,minDev_op]=penaltyselection( ...
+    Individual_Connectome,allLambdas,allLambdasOut,dataCovs_op);
+    toc % take 701 seconds for this example
+    
+    tic
+    [stroke_Pcov] = fitprecision( ...
+    Individual_Connectome,penalizationIn_op,penalizationOut_op,min_LamdaIn,double(stroke_Cov));
+    toc % take 277 seconds for this example
+    
+    % add this repo to your path (https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh)
+    addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/util
+    
+    % convert real value covariance to complex matrix (448x448) 
+    % then compute coherence
+    stroke_coh=normalizeCSD(r2c(stroke_Cov)); % ordinary coherence
+    stroke_Pcoh=normalizeCSD(r2c(logical(stroke_Pcov)));% partial coherence using boolean
+    
+    display(['freq' num2str(freq)])
+    sum(isnan(stroke_Pcoh),'all')
+    
+    stroke_pcoh5(freq,:,:)=stroke_Pcoh;
 end
-
-% AGL
-% penalty selection and fit precision
-% cd /home/zhibinz2/Documents/GitHub/MEG_EEG_Source_Localization/PCA_32chan_AGL
-addpath(genpath('./AGL_util'));
-dataCovs_op=squeeze(datapermuted_cov);
-tic
-[penalizationIn_op,penalizationOut_op,minDev_op]=penaltyselection( ...
-Individual_Connectome,allLambdas,allLambdasOut,dataCovs_op);
-toc % take 701 seconds for this example
-
-tic
-[stroke_Pcov] = fitprecision( ...
-Individual_Connectome,penalizationIn_op,penalizationOut_op,min_LamdaIn,stroke_Cov);
-toc % take 277 seconds for this example
-
-% add this repo to your path (https://github.com/wodeyara/AdaptiveGraphicalLassoforParCoh)
-addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/util
-
-% convert real value covariance to complex matrix (448x448) 
-% then compute coherence
-stroke_coh=normalizeCSD(r2c(stroke_Cov)); % ordinary coherence
-stroke_Pcoh=normalizeCSD(r2c(logical(stroke_Pcov)));% partial coherence using boolean
-
-sum(isnan(stroke_pcoh),'all')
+figure
+for freq=1:5
+    subplot(1,5,freq)
+    imagesc(logical(squeeze(stroke_pcoh5(freq,:,:))))
+    colorbar
+    title([bandlabels{freq} '   nan#: ' num2str(sum(isnan(stroke_pcoh5(freq,:,:)),'all'))])
+end
+save('output_debug.mat','stroke_pcoh5'); % reconstruire BUG pour patient file
