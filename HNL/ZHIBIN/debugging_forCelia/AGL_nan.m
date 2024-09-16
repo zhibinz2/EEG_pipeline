@@ -101,7 +101,7 @@ cd /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/u
 %% load Celia's source data
 cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/Trouble_shooting/wetransfer_calt-mat_2024-09-08_1921
 load('CALT.mat','corti_source_data');
-AGL_example_data=round(corti_source_data);
+AGL_example_data=corti_source_data;
 
 % figure;
 % plot(1:length(AGL_example_data),AGL_example_data);
