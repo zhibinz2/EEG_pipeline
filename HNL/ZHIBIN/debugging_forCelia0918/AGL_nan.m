@@ -204,7 +204,11 @@ for freq=1:5
     subplot(2,5,5+freq)
     imagesc(logical(squeeze(stroke_pcoh5(freq,:,:))))
     colorbar
-    title([bandlabels{freq} '   binary'])
+    title([bandlabels{freq} '   binary: edges # ' num2str(sum(triu(squeeze(logical(stroke_pcoh5(freq,:,:))),1),'all'))])
 end
 sgtitle('ADLE - partial coherence (EEG)')
 save('output_debug.mat','stroke_pcoh5'); % reconstruire BUG pour patient file
+
+figure;
+imagesc(triu(squeeze(logical(stroke_Pcoh)),1));colorbar
+
