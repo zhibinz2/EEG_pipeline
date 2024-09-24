@@ -14,3 +14,9 @@ imagesc(fullConnectome463);title('463 ROI full connectome');
 subplot(122)
 imagesc(fullConnectome448);title('448 ROI full connectome');
 
+
+% In 'extract_fullconnectome.mat', you will find:
+% fullConnectome463 - full intact binary structure connectome of all 463 ROIs
+% fullConnectome448 - full intact binary structure connectome of 448 cortical ROIs
+% roi463names - names for all 463 ROIs
+% roi448names - names for 448 cortical ROIs
