@@ -67,6 +67,7 @@ end
 sum(bool_subcorti)
 ind=find(bool_subcorti);
 ind % use these subcortical indices to remove subcortical aggregated pca data
+ind_rm=ind;
 
 % remove subcortical ROIs
 ave_source_coor(ind,:)=[];

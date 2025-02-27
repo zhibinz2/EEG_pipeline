@@ -12,8 +12,6 @@ for p=1:60; % 12
 % p=50 
 % p= 5 
 % p= 35
-% p = 48 
-% p =1
 load([num2str(p) '.mat']);
 % reduced the size
 wind=[91000:96000];
@@ -39,7 +37,7 @@ freq_power = sum(pxx(freq_idx, :), 1); % Sum across frequency range
 clf
 % topoplot(freq_power, chanlocs,'electrodes', 'on');
 % topoplot(freq_power, chanlocs, 'electrodes', 'labelpoint');
-topoplot(std(preprocessed_eeg'), chanlocs, 'electrodes', 'labelpoint');
+topoplot(var(preprocessed_eeg'), chanlocs, 'electrodes', 'labelpoint');
 colorbar;
 title(num2str(p))
 % title('Delta Band Power (0.5-4 Hz)');
@@ -130,7 +128,7 @@ for sr=1:max(unique(source_labels))
     end
 end % 66s
 % remove source data of the subcortical ROIs
-corti_source_data(:,ind_rm)=[];
+corti_source_data(:,ind)=[];
 
 
 sum(coeff.^2)
