@@ -157,7 +157,7 @@ display(['start processing subject file: ' fichier]);
 
 % Using inverse solution to covert preprocessed eeg to localized source data
 cd /ssd/zhibin/archive/EEG_stroke_62_reorganized
-load('3.mat')
+load('2.mat')
 source_data=inversemat*preprocessed_eeg;
 
 
@@ -173,7 +173,8 @@ for sr=1:max(unique(source_labels))
 end % 66s
     
 % remove source data of the subcortical ROIs
-corti_source_data(:,ind)=[];
+% ind_rm=ind;
+corti_source_data(:,ind_rm)=[];
 
 % save the aggregated source data for the 448 cortical ROIs
 % navegate the your destination directory, such as

@@ -59,14 +59,13 @@ for h=1:size(Vertices,1)
     Vertices
 end
 
-
+pointsize=0.9
 figure;
-subplot(121)
-scatter3(lowDensityCoords(:,1), lowDensityCoords(:,2), lowDensityCoords(:,3), 10, lowDensityValues, ...
+clf
+scatter3(X,Y,Z, pointsize, puissance, ...
         "filled", 'MarkerFaceAlpha',0.9);
-view(0,90); colorbar;
-subplot(122)
-scatter3(highDensityCoords(:,1), highDensityCoords(:,2), highDensityCoords(:,3), 10, highDensityValues, ...
+hold on;
+scatter3(Vertices(:,1), Vertices(:,2), Vertices(:,3), pointsize, interp_values, ...
         "filled", 'MarkerFaceAlpha',0.9);
 view(0,90); colorbar;
 
@@ -77,9 +76,7 @@ view(0,90); colorbar;
 
 interp_values(isnan(interp_values)) = 0;
 
-% interp_values(isnan(highDensityValues)) = 0;
-
-writematrix(highDensityValues, 'scalp_surface.txt');
+writematrix(interp_values, 'scalp_surface.txt');
 
 
 BrainNet
