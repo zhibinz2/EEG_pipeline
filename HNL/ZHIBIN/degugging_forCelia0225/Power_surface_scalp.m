@@ -52,12 +52,8 @@ legend('Aligned Low Density', 'High Density');
 title('After Alignment');
 %Find the nearest aligned low-density point for each high-density point
 [idx, ~] = knnsearch(alignedLowDensityCoords, highDensityCoords);
-lowDensityValues=value_display;
+lowDensityValues=value_display';
 highDensityValues = lowDensityValues(idx);
-
-for h=1:size(Vertices,1)
-    Vertices
-end
 
 
 figure;
@@ -74,8 +70,8 @@ view(0,90); colorbar;
 %
 % F = scatteredInterpolant(X, Y, Z, puissance, 'natural'); % Ou 'linear', 'cubic'
 % interp_values = F(Vertices(:,1), Vertices(:,2), Vertices(:,3));
-
-interp_values(isnan(interp_values)) = 0;
+sum(isnan(highDensityValues))
+interp_values(isnan(highDensityValues)) = 0;
 
 % interp_values(isnan(highDensityValues)) = 0;
 

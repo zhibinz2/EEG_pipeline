@@ -6,9 +6,10 @@ BrainNet
 addpath(genpath('/home/zhibinz2/Documents/GitHub/eeglab'))
 % load corti_source_data
 cd /ssd/zhibin/archive/EEG_stroke_62_cleaned20240423
-for p=1:60; % 12
+figure;
+% for p=1:60; % 12
 % p=52; % remove bad channel from leadfield matrix
-% p=12
+p=12
 % p=50 
 % p= 5 
 % p= 35
@@ -18,11 +19,12 @@ load([num2str(p) '.mat']);
 % reduced the size
 wind=[91000:96000];
 preprocessed_eeg=preprocessed_eeg(:,wind);
+preprocessed_eeg = zscore(preprocessed_eeg, 0, 2); % Normalize across each channel
 % plot(wind,preprocessed_eeg);
 % preprocessed_eeg=preprocessed_eeg;
 
 % Define delta band range
-freq_band = [1 3]; % Hz
+freq_band = [30 50]; % Hz
 
 % Sampling rate
 fs = 1000; % Hz
@@ -35,16 +37,18 @@ freq_idx = (f >= freq_band(1)) & (f <= freq_band(2));
 freq_power = sum(pxx(freq_idx, :), 1); % Sum across frequency range
 % Plot topography using EEGLAB's topoplot
 
-% figure;
-clf
-% topoplot(freq_power, chanlocs,'electrodes', 'on');
+figure;
+% subplot(6,10,p)
+% clf
+topoplot(freq_power, chanlocs,'electrodes', 'on');colorbar;colormap('jet');clim([min(freq_power) max(freq_power)]);title('power')
 % topoplot(freq_power, chanlocs, 'electrodes', 'labelpoint');
-topoplot(std(preprocessed_eeg'), chanlocs, 'electrodes', 'labelpoint');
-colorbar;
-title(num2str(p))
-% title('Delta Band Power (0.5-4 Hz)');
-pause(0.25);
-end
+% topoplot(std(preprocessed_eeg'), chanlocs, 'electrodes', 'labelpoint');
+% colorbar;
+% title(num2str(p))
+% % title('Delta Band Power (0.5-4 Hz)');
+% pause(0.25);
+% end
+% sgtitle('zscore power freq 30-50 wind 91000-96000')
 
 figure;
 clf
@@ -72,7 +76,7 @@ source_data=inversemat*preprocessed_eeg;
 reconEEG=leadfield*source_data;
 corrmat=corr(reconEEG',preprocessed_eeg');
 % imagesc(corrmat);colorbar
-% topoplot(diag(corrmat), chanlocs,'electrodes', 'on');colorbar
+% figure;clf;topoplot(diag(corrmat), chanlocs,'electrodes', 'on');colorbar
 figure; topoplot(diag(corrmat), chanlocs,'electrodes', 'labelpoint');colorbar
 plot(1:size(preprocessed_eeg,1),diag(corrmat))
 badchansplus=find(diag(corrmat)<0.9)
@@ -87,8 +91,8 @@ freq_power = sum(pxx(freq_idx, :), 1); % Sum across frequency range
 % Plot topography using EEGLAB's topoplot
 figure;
 clf
-% topoplot(freq_power, chanlocs,'electrodes', 'labelpoint');
-topoplot(std(reconEEG'), chanlocs,'electrodes', 'labelpoint');
+topoplot(freq_power, chanlocs,'electrodes', 'on');colorbar;colormap('jet');clim([min(freq_power) max(freq_power)]);title('power')
+% topoplot(std(reconEEG'), chanlocs,'electrodes', 'labelpoint');
 colorbar;
 title(num2str(p))
 % title('Delta Band Power (0.5-4 Hz)');
@@ -106,8 +110,8 @@ freq_power = sum(pxx(freq_idx, :), 1); % Sum across frequency range
 % source_rrX=source_rr(:,1);source_rrY=source_rr(:,2);source_rrZ=source_rr(:,3);
 cd /home/zhibinz2/Documents/GitHub/STROKE_P61/lesion_mask_on_L_p61_20240427/networkx/new_simu
 figure
-% values_display=freq_power;
-values_display=std(source_data');
+values_display=freq_power;
+% values_display=std(source_data');
 s=scatter3(source_rrX, source_rrY, source_rrZ, pointsize, values_display, ...
         "filled", 'MarkerFaceAlpha',0.9);
 xlabel('x');ylabel('y');zlabel('z');
@@ -135,8 +139,6 @@ corti_source_data(:,ind_rm)=[];
 
 sum(coeff.^2)
     
-
-
 figure;plot(var(source_data'))
 figure;plot(var(corti_source_data))
 figure;plot(LATENT_DATA)
@@ -160,8 +162,8 @@ freq_power = sum(pxx(freq_idx, :), 1); % Sum across frequency range
 
 cd /home/zhibinz2/Documents/GitHub/STROKE_P61/lesion_mask_on_L_p61_20240427/networkx/new_simu
 figure
-value_display=std(corti_source_data);
-% value_display=freq_power;
+% value_display=std(corti_source_data);
+value_display=freq_power;
 roi3dbrain(value_display, X448_fs, Y448_fs, Z448_fs, ...
     pointsize*2,source_roi_index,ROI448_IC,ROI463_IC,triang,'sky');
 text(3,100,0,'I');text(170,100,0,'C');text(70,8,0,'Posterior')
@@ -173,3 +175,5 @@ view(caz,cel)
 % title(titles{nx})
 % subtitle([bandlabels{freq}])
 axis off
+
+%
