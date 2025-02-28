@@ -52,7 +52,7 @@ legend('Aligned Low Density', 'High Density');
 title('After Alignment');
 %Find the nearest aligned low-density point for each high-density point
 [idx, ~] = knnsearch(alignedLowDensityCoords, highDensityCoords);
-lowDensityValues=value_display'*10e5;
+lowDensityValues=value_display';%*10e8;
 highDensityValues = lowDensityValues(idx);
 
 
@@ -70,19 +70,11 @@ view(0,90); colorbar;
 %
 % F = scatteredInterpolant(X, Y, Z, puissance, 'natural'); % Ou 'linear', 'cubic'
 % interp_values = F(Vertices(:,1), Vertices(:,2), Vertices(:,3));
-find(isnan(highDensityValues))
-find(isinf(highDensityValues))
-
+sum(isnan(highDensityValues))
 interp_values(isnan(highDensityValues)) = 0;
 
 % interp_values(isnan(highDensityValues)) = 0;
 
-cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/degugging_forCelia0225
 writematrix(highDensityValues, 'scalp_surface.txt');
+cd /home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/degugging_forCelia0225
 BrainNet
-
-figure;
-s=scatter3(highDensityCoords(:,1), highDensityCoords(:,2), highDensityCoords(:,3), 10, highDensityValues, ...
-        "filled", 'MarkerFaceAlpha',0.9);
-xlabel('x');ylabel('y');zlabel('z'); colormap('jet');colorbar;
-% s.DataTipTemplate.DataTipRows(4).Label = "Value (Color)";
