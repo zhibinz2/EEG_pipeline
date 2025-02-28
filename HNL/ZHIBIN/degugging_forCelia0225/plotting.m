@@ -11,6 +11,11 @@ eegbeta=POWER.BETA.Sum;
 eegnames=POWER.INFO.Name;
 eegnames=eegnames(1,:);
 
+for freq=1:5
+    subplot(1,5,freq)
+    
+
+
 [isMatch, idx2] = ismember(sourcenames, eegnames);
 idx1 = find(isMatch);  % Indices in cellArray1
 idx2 = idx2(isMatch); 
@@ -43,7 +48,7 @@ for pt=1:100
     % subtitle([bandlabels{freq}])
     axis off
     sgtitle(num2str(pt))
-    pause(2)
+    pause(1)
 end
 
 %delta 
@@ -75,8 +80,11 @@ preprocessed_eeg=preprocessed_eeg(:,wind);
 % preprocessed_eeg=preprocessed_eeg;
 
 % Define delta band range
-freq_band = [0.5 3]; % Hz
-
+% freq_band = [0.5 3]; % Hz
+freq_band = [3 7]; % Hz
+freq_band = [8 12]; % Hz
+freq_band = [13 20]; % Hz
+freq_band = [20 30]; % Hz
 % Sampling rate
 fs = 1000; % Hz
 
@@ -100,9 +108,9 @@ powerSpectrum = abs(EEG_fft).^2 / N;
 freq_power = sum(powerSpectrum(:, freq_idx), 2);
 
 % figure;
-subplot(6,10,p)
+% subplot(6,10,p)
 % clf
-% topoplot(freq_power, chanlocs,'electrodes', 'on');colorbar;colormap('jet');
+topoplot(freq_power, chanlocs,'electrodes', 'on');colorbar;colormap('jet');
 % topoplot(Variance, chanlocs,'electrodes', 'on');colorbar;colormap('jet');
 % clim([min(freq_power) max(freq_power)]);title('power')
 % topoplot(freq_power, chanlocs, 'electrodes', 'labelpoint');
@@ -111,6 +119,7 @@ topoplot(std(preprocessed_eeg'), chanlocs, 'electrodes', 'off');
 % colorbar;
 title(num2str(p))
 % % title('Delta Band Power (0.5-4 Hz)');
+ title('Theta');
 % pause(0.25);
 end
 sgtitle('std 91000-99000')
@@ -159,7 +168,7 @@ leadfield(badchans,:)=zeros;
 
 % source
 addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulations/util
-[inversemat] = inversemodel(leadfield,'prctile',75);
+[inversemat] = inversemodel(leadfield,'prctile',50);
 source_data=inversemat*preprocessed_eeg;
 % figure;plotx(std(source_data'))
 
