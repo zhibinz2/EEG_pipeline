@@ -1,20 +1,16 @@
 addpath(genpath('/home/zhibinz2/Documents/GitHub/BrainNetViewer_20191031'))
 BrainNet
-% load source power
-load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/trouble_shooting20250225/Patient_power.mat')
-sourcedelta=POWER.DELTA.Sum;
-sourcebeta=POWER.BETA.Sum;
-sourcenames=POWER.INFO.Name;
+
 load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/trouble_shooting20250225/scalp256/Patient_256_Power.mat')
 eegdelta=POWER.DELTA.Sum;
 eegbeta=POWER.BETA.Sum;
 eegnames=POWER.INFO.Name;
 eegnames=eegnames(1,:);
-
-for freq=1:5
-    subplot(1,5,freq)
-    
-
+% load source power
+load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/trouble_shooting20250225/Patient_power.mat')
+sourcedelta=POWER.DELTA.Sum;
+sourcebeta=POWER.BETA.Sum;
+sourcenames=POWER.INFO.Name;
 
 [isMatch, idx2] = ismember(sourcenames, eegnames);
 idx1 = find(isMatch);  % Indices in cellArray1
@@ -56,6 +52,35 @@ pt=2;
 
 %beta
 pt=10 
+
+%% scale
+load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/trouble_shooting20250225/scalp256/Patient_256_Power.mat')
+EEGsum=nan(7,256,124);
+EEGsum(1,:,:)=POWER.DELTA.Sum;EEGsum(2,:,:)=POWER.THETA.Sum;EEGsum(3,:,:)=POWER.ALPHA.Sum;EEGsum(4,:,:)=POWER.BETA.Sum;
+EEGsum(5,:,:)=POWER.LOWBETA.Sum;EEGsum(6,:,:)=POWER.HIGHBETA.Sum;EEGsum(7,:,:)=POWER.GAMMA.Sum;
+
+load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/Celia/trouble_shooting20250225/Patient_power.mat')
+sourcesum=nan(7,448,100);
+sourcesum(1,:,:)=POWER.DELTA.Sum;sourcesum(2,:,:)=POWER.THETA.Sum;sourcesum(3,:,:)=POWER.ALPHA.Sum;sourcesum(4,:,:)=POWER.BETA.Sum;
+sourcesum(5,:,:)=POWER.LOWBETA.Sum;sourcesum(6,:,:)=POWER.HIGHBETA.Sum;sourcesum(7,:,:)=POWER.GAMMA.Sum;
+
+
+figure;
+for pt=1:100
+    clf
+    for freq=1:7
+        freqEEGsum=squeeze(EEGsum(freq,:,idx2(pt)));
+        freqsourcesum=squeeze(sourcesum(freq,:,idx1(pt)));
+        
+        subplot(1,7,freq);
+        plot(freqsourcesum);hold on;plot(freqEEGsum);
+    end
+    sgtitle(num2str(pt))
+    pause(0.5)
+end
+
+
+
 %% plot in my own way
 addpath(genpath('/home/zhibinz2/Documents/GitHub/eeglab'))
 % load corti_source_data
@@ -107,6 +132,7 @@ freq_idx = find(freqs >= freq_band(1) & freqs <= freq_band(2));
 powerSpectrum = abs(EEG_fft).^2 / N;
 freq_power = sum(powerSpectrum(:, freq_idx), 2);
 
+load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/base_files/MNE/EGI256/chanlocs.mat')
 % figure;
 % subplot(6,10,p)
 % clf
@@ -164,6 +190,7 @@ badchans=unique([badchans badchansplus'])
 % badchans=ch_dubious;
 %load leadfield
 load('/home/zhibinz2/Documents/GitHub/EEG_pipeline/HNL/ZHIBIN/base_files/MNE/EGI256/MNE_source_model.mat')
+figure;imagesc(leadfield);colorbar;
 leadfield(badchans,:)=zeros;
 
 % source
@@ -171,6 +198,22 @@ addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulati
 [inversemat] = inversemodel(leadfield,'prctile',50);
 source_data=inversemat*preprocessed_eeg;
 % figure;plotx(std(source_data'))
+
+% pick a random source
+figure;
+for ransr=76:5124 % ransr=24 ransr=61 ransr=76
+    clf
+    subplot(121)
+    topoplot(squeeze(leadfield(:,ransr)), chanlocs,'electrodes', 'on');colorbar;colormap('jet');
+    title(['source ' num2str(ransr)])
+    subtitle('leadfield')
+    subplot(122)
+    topoplot(squeeze(inversemat(ransr,:)), chanlocs,'electrodes', 'on');colorbar;colormap('jet');
+    title(['source ' num2str(ransr)])
+    subtitle('inverse matrix')
+    pause(0.25)
+end
+
 
 % correlation
 reconEEG=leadfield*source_data;
