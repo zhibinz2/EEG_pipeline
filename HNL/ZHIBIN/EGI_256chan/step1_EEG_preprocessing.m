@@ -12,6 +12,7 @@ ch_peripheral_cz=[241 242 243 238 239 240 ...
     244 245 246 247 251 256 91 102 111 120 133 145 165 174 187 199 208 216 229 233 237 236 235 234 ...
     232 228 217 209 200 188 175 166 156 146 134 121 112 103 92 82 255 250 ...
     257];
+
 % We will remove these pherical channels, as they contain lots EMG artifect
 % Cz channel is the default reference on the EGI device, which has values of zeros on the raw data
 % After removal of 49 peripheral channels and the Cz, there are 208 channels left (257-49=208)
@@ -107,7 +108,7 @@ display(['start processing subject file: ' num2str(subj_files(f)) '.mat']);
 rData=Data-ones(size(Data,1),1)*mean(Data,1);
 % remove 49 peripheral channels and cz reference
 rData(ch_peripheral_cz,:)=[];
-rData=rData';
+rData=rData'; 
 % detrend the EEG data 
 detrend_data=detrend(rData,1);
 % add paddings to allow some buffer zone of edge effect

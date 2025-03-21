@@ -199,6 +199,23 @@ addpath /home/zhibinz2/Documents/GitHub/AdaptiveGraphicalLassoforParCoh/Simulati
 source_data=inversemat*preprocessed_eeg;
 % figure;plotx(std(source_data'))
 
+% correlation coef summary
+cd /ssd/zhibin/archive/EEG_stroke_62_cleaned20240423
+corrcoef_all=nan(61,256);
+for f=1:61
+    tic
+    load([num2str(f-1) '.mat'],'preprocessed_eeg');
+    source_data=inversemat*preprocessed_eeg;
+    reconEEG=leadfield*source_data;
+    corrmat=corr(reconEEG',preprocessed_eeg');
+    corrcoef_all(f,:)=diag(corrmat);
+    toc
+end
+% 4 min
+mean(corrcoef_all(~isnan(corrcoef_all)),'all')
+hist(corrcoef_all(~isnan(corrcoef_all)))
+
+
 % pick a random source
 figure;
 for ransr=76:5124 % ransr=24 ransr=61 ransr=76
